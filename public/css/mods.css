@@ -2,6 +2,17 @@ a{
     color:rgb(52, 133, 228)
 }
 
+.h1 {
+	color: #ffffff;
+	font-weight: bold;
+	text-align: middle;
+	font-family: Arial Black, Gadget, sans-serif;
+	background-color: #FFFFFF;
+	font-size: 51px;
+	padding: 17px;
+}
+
+
 .imagehero{
     background-size: cover;
     background-position: 50% 50%;
