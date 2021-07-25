@@ -1,0 +1,14 @@
+<%const content = await md('projects/'+project)%>
+<section class="hero is-medium is-primary mb-3 <%= content.data.hero %> <%= content.data.image?'imagehero':''%>" <%-content.data.image?`style="background-image:url(/images/${content.data.image})"`:''%>>
+  <div class="hero-body">
+    <p class="title">
+      <%= content.data.title %>
+    </p>
+    <p class="subtitle">
+      <%= content.data.subtitle %>
+    </p>
+  </div>
+</section>
+<div class="container box content">
+    <%- content.content%>
+</div>

@@ -31,7 +31,8 @@ const PACKAGEJSON = {
         "express-ejs-layouts": "^2.5.1",
         "marked": "^2.1.3",
         "qrcode": "^1.4.4",
-        "serve-favicon": "^2.5.0"
+        "serve-favicon": "^2.5.0",
+        "gray-matter": "^4.0.3"
     },
     "name": "easyserv",
     "version": "1.0.0",
@@ -180,12 +181,21 @@ app.engine('ejs', async (path, data, cb) => {
 
 // Marked.js wrapper that auto-targets the 'content/markdown' folder
 const marked = require('marked');
+const matter = require('gray-matter');
 welcomepage = marked(welcomepage) // render welcome template now that we have 'marked'
 async function markdown(resref, filename) {
     const target = path.resolve(process.cwd(), 'content/markdown', filename) + '.md'
     try {
-        const file = (await fsp.readFile(target)).toString()
-        return marked(file)
+        var file = (await fsp.readFile(target)).toString()
+        file = matter(file)
+        if (Object.keys(file.data).length === 0 && file.data.constructor === Object) {
+            return marked(file.content)
+        } else {
+            return {
+                content: marked(file.content),
+                data: file.data
+            }
+        }
     } catch (e) {
         console.log(`md(): cannot load Markdown file ${target}: ${e}`);
         resref.completed = true
@@ -283,10 +293,13 @@ walk('./views/pages', (err, routes) => {
     app.use(favicon(imgBuffer));
 
 
-    app.get('*', (req, res) => {
+    app.get('/404', (req, res) => {
         console.log(`Request to ${req.url} cannot be fullfiled, falling back to internal error page`);
         res.completed = false
         res.status(404).send(errorpage.replace('$content', `<h1 class="title">404</h1><h3 class="subtitle">Page not found :(</h3>`))
+    })
+    app.get('*', (req, res) => {
+        res.redirect('/404')
     })
 
     console.log('EasyServ listening on port ' + (process.env.PORT || 3000));

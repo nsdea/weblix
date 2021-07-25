@@ -1,6 +1,25 @@
-<h1 class="title">Test</h1>
-<div class="container">
-<div class="box content">
-<%- await md('index')%>
+<section class="hero is-info mb-3 is-medium imagehero" style="background-image:url('/images/city.)">
+  <div class="hero-body">
+    <p class="title">
+      ONLIX
+    </p>
+    <p class="subtitle">
+      A professional idiot
+    </p>
+  </div>
+</section>
+
+<div class="container box content">
+    <%- await md('index')%>
 </div>
+
+<div class="container mb-3">
+    <% const projects = await json('projects')%>
+    <div class="columns">
+        <%for(let i = 0;i<projects.length;i++){%>
+            <div class="column">
+            <%- await include('../components/projectcard',{item: projects[i]}) %>
+            </div>
+        <%}%>
+    </div>
 </div>
