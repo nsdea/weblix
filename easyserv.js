@@ -75,20 +75,30 @@ var fsp = require('fs/promises');
 var fs = require('fs')
 
 // Check dependency status
+const {
+    execSync,
+    exec
+} = require('child_process');
 try {
     require('express') // if one is missing they probably forgot to install
 } catch (e) { // dependencies not installed, load
     // Package.json to be dumped on first run
     console.log("dependencies missing, installing");
     fs.writeFileSync('package.json', JSON.stringify(PACKAGEJSON))
-    const {
-        execSync
-    } = require('child_process');
     execSync('npm i')
 
     console.log('Done. run your server using:\n')
     console.log('npm run serv');
     process.exit(42)
+}
+
+async function staticifyPage() {
+    const CRAWL = `wget -P dist/ --no-clobber --no-host-directories --recursive --page-requisites --html-extension --convert-links --no-parent http://localhost:${process.env.PORT || 3000}`
+    console.log("Starting page export using WGET crawling, this may take some time.");
+    console.log(CRAWL);
+    await execSync('rm -rf dist/')
+    await exec(CRAWL)
+    console.log("Page export done.");
 }
 
 
@@ -297,6 +307,13 @@ walk('./views/pages', (err, routes) => {
         console.log(`Request to ${req.url} cannot be fullfiled, falling back to internal error page`);
         res.completed = false
         res.status(404).send(errorpage.replace('$content', `<h1 class="title">404</h1><h3 class="subtitle">Page not found :(</h3>`))
+    })
+    app.get('/' + (process.env.RENDERTRIGGER || 'export'), (req, res) => {
+        res.send(errorpage.replace('hero is-danger', 'hero is-warning is-medium').replace('EasyServ Error', 'EasyServ Export').replace('$content', marked(`# Static export\nYou can export your pages to static HTML recursive WGET crawler [*starting at \`/\`*] by seding a POST request to \`/export\`\n<form action="/export" method="POST"><button type="submit" class="button is-danger">Start export</button></form>`)))
+    })
+    app.post('/export', async (req, res) => {
+        res.send(errorpage.replace('hero is-danger', 'hero is-success is-medium').replace('EasyServ Error', 'EasyServ Export').replace('$content', marked(`# Static export\nExport started, this might take some time`)))
+        await staticifyPage()
     })
     app.get('*', (req, res) => {
         res.redirect('/404')
